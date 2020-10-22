@@ -15,7 +15,7 @@ def shm_step(step):
     shm_t[ind] = step_solution.t[-1]
 
 
-def solve_w_SharedArray(model, sol_init, end_time, Nsteps, dt=1, Nspm=8):
+def solve_w_SharedArray(model, sol_init, Nsteps, dt=1, Nspm=8):
     try:
         shm_y = SharedArray.create("shm://y", [sol_init.y.shape[0], Nspm], dtype=float)
         shm_t = SharedArray.create("shm://t", [Nspm], dtype=float)
@@ -36,6 +36,7 @@ def solve_w_SharedArray(model, sol_init, end_time, Nsteps, dt=1, Nspm=8):
 
     time = 0
     tstep = 0
+    end_time = Nsteps*dt
     while time < end_time:
         print("Time", time)
         work = [Sim(model, sol_init, dt, ind, tstep) for ind in range(Nspm)]
