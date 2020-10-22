@@ -1,5 +1,6 @@
 import SharedArray
 from concurrent.futures import ProcessPoolExecutor
+from numpy import copy as copy_array
 
 from sim import Sim
 
@@ -48,8 +49,8 @@ def solve_w_SharedArray(model, sol_init, Nsteps, dt=1, Nspm=8):
         time += dt
         tstep += 1
 
-    y = np.copy(shm_y)
-    t = np.copy(shm_t)
+    y = copy_array(shm_y)
+    t = copy_array(shm_t)
     SharedArray.delete("shm://y")
     SharedArray.delete("shm://t")
     SharedArray.delete("shm://i_app")
