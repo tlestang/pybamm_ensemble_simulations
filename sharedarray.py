@@ -39,13 +39,10 @@ def solve_w_SharedArray(model, sol_init, Nsteps, dt=1, Nspm=8):
     tstep = 0
     end_time = Nsteps*dt
     while time < end_time:
-        print("Time", time)
         work = [Sim(model, sol_init, dt, ind, tstep) for ind in range(Nspm)]
         ex = ProcessPoolExecutor()
         ex.map(shm_step, work)
         ex.shutdown(wait=True)
-        print(shm_t[:10])
-        print(shm_y[0, :10])
         time += dt
         tstep += 1
 
