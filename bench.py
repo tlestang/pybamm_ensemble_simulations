@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+from prettytable import PrettyTable
 import pybamm as pb
 
 from pool import solve_w_pool
@@ -60,6 +61,43 @@ def execute_n_times(func, args, n=10, **kwargs):
     return elapsed_time
 
 
+def make_table(benchmark_results, nproc_range):
+    impl_col = []
+    nproc_col = []
+    avg_col = []
+    err_col = []
+    for impl in benchmark_results.keys():
+        if impl == "serial":
+            impl_col.append(impl)
+            nproc_col.append("-")
+            avg_col.append(np.mean(benchmark_results[impl]))
+            err_col.append(
+                np.std(benchmark_results[impl]) / np.sqrt(len(benchmark_results[impl]))
+            )
+        else:
+            impl_col.extend([impl] * len(list(nproc_range)))
+            nproc_col.extend([nproc for nproc in nproc_range])
+            avg_col.extend(
+                [
+                    np.mean(individual_times)
+                    for individual_times in benchmark_results[impl]
+                ]
+            )
+            err_col.extend(
+                [
+                    np.std(individual_times) / np.sqrt(len(individual_times))
+                    for individual_times in benchmark_results[impl]
+                ]
+            )
+    table = PrettyTable()
+    table.add_column("Implementation", impl_col)
+    table.add_column("# processes", nproc_col)
+    table.add_column("Average time (s)", avg_col)
+    table.add_column("Standard error (s)", err_col)
+
+    return table
+
+
 if __name__ == "__main__":
     model = init_model()
     sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
@@ -73,16 +111,25 @@ if __name__ == "__main__":
     elapsed_time = execute_n_times(solve_serial, args, n=Nreps)
 
     elapsed_time_sharedarray = []
-    for nproc in range(2, 6, 2):
+    for nproc in nproc_range:
         elapsed_time_sharedarray.append(
             execute_n_times(solve_w_SharedArray, args, n=Nreps, processes=nproc)
         )
 
     elapsed_time_pool = []
-    for nproc in range(2, 6, 2):
+    for nproc in nproc_range:
         elapsed_time_pool.append(
             execute_n_times(solve_w_pool, args, n=Nreps, processes=nproc)
         )
+
+    table = make_table(
+        {
+            "SharedArray": elapsed_time_sharedarray,
+            "multiprocessing.Pool": elapsed_time_pool,
+            "serial": elapsed_time,
+        },
+        nproc_range,
+    )
 
     with open("scaling_serial.txt", "w") as f:
         f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))
@@ -92,3 +139,7 @@ if __name__ == "__main__":
 
     with open("scaling_pool.txt", "w") as f:
         np.savetxt(f, np.array(elapsed_time_pool), fmt="%.3f", delimiter=",")
+
+    print(" ")
+    print(f"Nreps = {Nreps}", "Npsm = {Nspm}")
+    print(table)
