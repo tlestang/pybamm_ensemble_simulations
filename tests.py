@@ -5,6 +5,7 @@ import pybamm as pb
 
 from sharedarray import solve_w_SharedArray
 from pool import solve_w_pool
+from serial import solve_serial
 
 
 def current_function(t):
@@ -40,7 +41,7 @@ class TestEnsembleSimulation(unittest.TestCase):
 
         # set mesh
         mesh = pb.Mesh(
-           geometry, self.model.default_submesh_types, self.model.default_var_pts
+            geometry, self.model.default_submesh_types, self.model.default_var_pts
         )
 
         # discretise self.model
@@ -53,6 +54,7 @@ class TestEnsembleSimulation(unittest.TestCase):
 
         self.Nsteps = 10
         self.dt = 1
+        self.Nspm = 8
 
         expected_y_flat = np.fromfile("ref/base_solution.bin")
         Npoint = self.sol_init.y.shape[0]
@@ -60,12 +62,18 @@ class TestEnsembleSimulation(unittest.TestCase):
         self.expected_y = expected_y_flat.reshape((Npoint, Nspm))
 
     def test_SharedArray(self):
-        y, t = solve_w_SharedArray(self.model, self.sol_init, self.Nsteps, self.dt)
+        y, t = solve_w_SharedArray(
+            self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm
+        )
 
         np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
 
-
     def test_Pool(self):
-        y = solve_w_pool(self.model, self.sol_init, self.Nsteps, self.dt)
+        y, t = solve_w_pool(self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm)
+
+        np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
+
+    def test_Serial(self):
+        y, t = solve_serial(self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm)
 
         np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
