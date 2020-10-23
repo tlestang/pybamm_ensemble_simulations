@@ -18,46 +18,59 @@ def get_initial_solution(model, t_eval, inputs):
     return solver.solve(model, t_eval, inputs=inputs)
 
 
-# load model
-model = pb.lithium_ion.SPMe()
+def init_model():
+    # load model
+    model = pb.lithium_ion.SPMe()
 
-# create geometry
-geometry = model.default_geometry
+    # create geometry
+    geometry = model.default_geometry
 
-# load parameter values and process model and geometry
-param = model.default_parameter_values
+    # load parameter values and process model and geometry
+    param = model.default_parameter_values
 
-param.update(
-    {
-        "Current function [A]": current_function,
-    }
-)
-param.update({"Current": "[input]"}, check_already_exists=False)
-param.process_model(model)
-param.process_geometry(geometry)
+    param.update(
+        {
+            "Current function [A]": current_function,
+        }
+    )
+    param.update({"Current": "[input]"}, check_already_exists=False)
+    param.process_model(model)
+    param.process_geometry(geometry)
 
-# set mesh
-mesh = pb.Mesh(
-    geometry, model.default_submesh_types, model.default_var_pts
-)
+    # set mesh
+    mesh = pb.Mesh(geometry, model.default_submesh_types, model.default_var_pts)
 
-# discretise model
-disc = pb.Discretisation(mesh, model.default_spatial_methods)
-disc.process_model(model)
+    # discretise model
+    disc = pb.Discretisation(mesh, model.default_spatial_methods)
+    disc.process_model(model)
 
-sol_init = get_initial_solution(
-    model, np.linspace(0, 1, 2), {"Current": 0.67}
-)
+    return model
 
-Nsteps = 10
-dt = 1
 
-st = time.time()
-y, t = solve_w_SharedArray(model, sol_init, Nsteps, dt)
-elapsed_time = time.time() - st
-print(f"SharedArray: {elapsed_time} s")
+def execute_n_times(func, n):
+    global model
+    global sol_init
+    elapsed_time = []
+    for rep in range(n):
+        print(f"Executing funtion {func.__name__}, rep {rep+1} of {n}")
+        st = time.time()
+        y, t = solve_w_SharedArray(model, sol_init, Nsteps, dt)
+        elapsed_time.append(time.time() - st)
 
-st = time.time()
-y = solve_w_pool(model, sol_init, Nsteps, dt)
-elapsed_time = time.time() - st
-print(f"Pool: {elapsed_time} s")
+    return elapsed_time
+
+
+if __name__ == "__main__":
+    model = init_model()
+    sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
+    Nreps = 10
+    Nsteps = 10
+    dt = 1
+
+    elapsed_time = execute_n_times(solve_w_SharedArray, Nreps)
+
+    with open("scaling_sharedarrray.txt", "w") as f:
+        f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))
+
+
+# y = solve_w_pool(model, sol_init, Nsteps, dt)
