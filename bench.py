@@ -47,14 +47,12 @@ def init_model():
     return model
 
 
-def execute_n_times(func, n):
-    global model
-    global sol_init
+def execute_n_times(func, args, n=10, **kwargs):
     elapsed_time = []
     for rep in range(n):
         print(f"Executing funtion {func.__name__}, rep {rep+1} of {n}")
         st = time.time()
-        y, t = solve_w_SharedArray(model, sol_init, Nsteps, dt)
+        y, t = func(*args, **kwargs)
         elapsed_time.append(time.time() - st)
 
     return elapsed_time
@@ -67,10 +65,9 @@ if __name__ == "__main__":
     Nsteps = 10
     dt = 1
 
-    elapsed_time = execute_n_times(solve_w_SharedArray, Nreps)
-
-    with open("scaling_sharedarrray.txt", "w") as f:
-        f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))
+    args = (model, sol_init, Nsteps, dt, Nspm)
 
 
-# y = solve_w_pool(model, sol_init, Nsteps, dt)
+
+    # with open("scaling_serial.txt", "w") as f:
+    #     f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))

@@ -16,7 +16,7 @@ def shm_step(step):
     shm_t[ind] = step_solution.t[-1]
 
 
-def solve_w_SharedArray(model, sol_init, Nsteps, dt=1, Nspm=8):
+def solve_w_SharedArray(model, sol_init, Nsteps, dt, Nspm, processes = None):
     try:
         shm_y = SharedArray.create("shm://y", [sol_init.y.shape[0], Nspm], dtype=float)
         shm_t = SharedArray.create("shm://t", [Nspm], dtype=float)
