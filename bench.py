@@ -3,11 +3,9 @@ import time
 import numpy as np
 import pybamm as pb
 
+from pool import solve_w_pool
 from serial import solve_serial
 from sharedarray import solve_w_SharedArray
-from pool import solve_w_pool
-
-# pb.set_logging_level("WARNING")
 
 
 def current_function(t):
