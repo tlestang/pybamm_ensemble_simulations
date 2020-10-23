@@ -1,5 +1,3 @@
 .python-version
 .dir-locals.el
-ref/*.bin
-ref/*.txt
 __pycache__
