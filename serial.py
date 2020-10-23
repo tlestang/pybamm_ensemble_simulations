@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def solve_serial(model, sol_init, Nsteps, dt, Nspm):
     end_time = Nsteps * dt
     i_app = 1.0
@@ -18,7 +19,7 @@ def solve_serial(model, sol_init, Nsteps, dt, Nspm):
                 inputs=list_of_inputs[i],
                 save=False,
             )
-        yarray[:,i] = solution.y[:, -1]
+        yarray[:, i] = solution.y[:, -1]
         tarray[i] = solution.t[-1]
-        
+
     return yarray, tarray

@@ -13,7 +13,7 @@ def worker(work):
     return solution
 
 
-def solve_w_pool(model, sol_init, Nsteps, dt, Nspm, processes = None):
+def solve_w_pool(model, sol_init, Nsteps, dt, Nspm, processes=None):
     end_time = Nsteps * dt
     i_app = 1.0
     list_of_inputs = [{"Current": i_app * (1 + (i + 1) / Nspm)} for i in range(Nspm)]
