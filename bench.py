@@ -1,3 +1,4 @@
+import argparse
 import time
 
 import numpy as np
@@ -63,48 +64,60 @@ def execute_n_times(func, args, n=10, **kwargs):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run some benchmarks")
+    parser.add_argument("--sharedarray", action="store_true")
+    parser.add_argument("--pool", action="store_true")
+    parser.add_argument("--serial", action="store_true")
+    args = parser.parse_args()
+    run_all = not (args.sharedarray or args.pool or args.serial)
+
     model = init_model()
     sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
-    Nreps = 10
-    Nspm = 8
-    Nsteps = 10
+    Nreps = 5
     nproc_range = range(2, 6, 2)
+    Nspm = 4
+    Nsteps = 5
     dt = 1
 
-    args = (model, sol_init, Nsteps, dt, Nspm)
+    solver_args = (model, sol_init, Nsteps, dt, Nspm)
+    summary_table_content = {}
 
-    elapsed_time = execute_n_times(solve_serial, args, n=Nreps)
+    if args.sharedarray or run_all:
+        elapsed_time_sharedarray = []
+        for nproc in nproc_range:
+            elapsed_time_sharedarray.append(
+                execute_n_times(
+                    solve_w_SharedArray, solver_args, n=Nreps, processes=nproc
+                )
+            )
+        summary_table_content.update({"sharedarray": elapsed_time_sharedarray})
 
-    elapsed_time_sharedarray = []
-    for nproc in nproc_range:
-        elapsed_time_sharedarray.append(
-            execute_n_times(solve_w_SharedArray, args, n=Nreps, processes=nproc)
-        )
+    if args.pool or run_all:
+        elapsed_time_pool = []
+        for nproc in nproc_range:
+            elapsed_time_pool.append(
+                execute_n_times(solve_w_pool, solver_args, n=Nreps, processes=nproc)
+            )
+        summary_table_content.update({"pool": elapsed_time_pool})
 
-    elapsed_time_pool = []
-    for nproc in nproc_range:
-        elapsed_time_pool.append(
-            execute_n_times(solve_w_pool, args, n=Nreps, processes=nproc)
-        )
+    if args.serial or run_all:
+        elapsed_time = execute_n_times(solve_serial, solver_args, n=Nreps)
+        summary_table_content.update({"serial": elapsed_time})
 
-    table = make_table(
-        {
-            "SharedArray": elapsed_time_sharedarray,
-            "multiprocessing.Pool": elapsed_time_pool,
-            "serial": elapsed_time,
-        },
-        nproc_range,
-    )
+    table = make_table(summary_table_content, nproc_range)
 
-    with open("scaling_serial.txt", "w") as f:
-        f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))
+    if args.serial or run_all:
+        with open("scaling_serial.txt", "w") as f:
+            f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))
 
-    with open("scaling_sharedarray.txt", "w") as f:
-        np.savetxt(f, np.array(elapsed_time_sharedarray), fmt="%.3f", delimiter=",")
+    if args.sharedarray or run_all:
+        with open("scaling_sharedarray.txt", "w") as f:
+            np.savetxt(f, np.array(elapsed_time_sharedarray), fmt="%.3f", delimiter=",")
 
-    with open("scaling_pool.txt", "w") as f:
-        np.savetxt(f, np.array(elapsed_time_pool), fmt="%.3f", delimiter=",")
+    if args.pool or run_all:
+        with open("scaling_pool.txt", "w") as f:
+            np.savetxt(f, np.array(elapsed_time_pool), fmt="%.3f", delimiter=",")
 
     print(" ")
-    print(f"Nreps = {Nreps}", "Npsm = {Nspm}")
+    print(f"Nreps = {Nreps}", f"Npsm = {Nspm}")
     print(table)
