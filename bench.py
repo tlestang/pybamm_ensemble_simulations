@@ -68,6 +68,7 @@ if __name__ == "__main__":
     Nreps = 10
     Nspm = 8
     Nsteps = 10
+    nproc_range = range(2, 6, 2)
     dt = 1
 
     args = (model, sol_init, Nsteps, dt, Nspm)

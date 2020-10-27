@@ -1,3 +1,7 @@
+import numpy as np
+from prettytable import PrettyTable
+
+
 def make_table(benchmark_results, nproc_range):
     impl_col = []
     nproc_col = []
