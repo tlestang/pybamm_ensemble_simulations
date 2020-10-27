@@ -73,10 +73,10 @@ if __name__ == "__main__":
 
     model = init_model()
     sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
-    Nreps = 5
+    Nreps = 10
     nproc_range = range(2, 6, 2)
-    Nspm = 4
-    Nsteps = 5
+    Nspm = 8
+    Nsteps = 10
     dt = 1
 
     solver_args = (model, sol_init, Nsteps, dt, Nspm)
