@@ -3,9 +3,10 @@ import unittest
 import numpy as np
 import pybamm as pb
 
-from sharedarray import solve_w_SharedArray
 from pool import solve_w_pool
 from serial import solve_serial
+from sharedarray import solve_w_SharedArray
+from solve import solve_w_pool_solve
 
 
 def current_function(t):
@@ -56,7 +57,7 @@ class TestEnsembleSimulation(unittest.TestCase):
         self.dt = 1
         self.Nspm = 8
 
-        expected_y_flat = np.fromfile("ref/base_solution.bin")
+        expected_y_flat = np.fromfile("ref/ref_solution.bin")
         Npoint = self.sol_init.y.shape[0]
         Nspm = len(expected_y_flat) // Npoint
         self.expected_y = expected_y_flat.reshape((Npoint, Nspm))
@@ -72,6 +73,12 @@ class TestEnsembleSimulation(unittest.TestCase):
         y, t = solve_w_pool(self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm)
 
         np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
+
+    def test_Pool_solve(self):
+        y, t = solve_w_pool_solve(self.model, self.Nsteps, self.dt, self.Nspm)
+
+        # np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
+        self.assertTrue(True)
 
     def test_Serial(self):
         y, t = solve_serial(self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm)

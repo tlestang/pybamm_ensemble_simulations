@@ -8,6 +8,7 @@ import pybamm as pb
 from pool import solve_w_pool
 from serial import solve_serial
 from sharedarray import solve_w_SharedArray
+from solve import solve_w_pool_solve
 from table import make_table
 
 
@@ -68,8 +69,9 @@ if __name__ == "__main__":
     parser.add_argument("--sharedarray", action="store_true")
     parser.add_argument("--pool", action="store_true")
     parser.add_argument("--serial", action="store_true")
+    parser.add_argument("--solve", action="store_true")
     args = parser.parse_args()
-    run_all = not (args.sharedarray or args.pool or args.serial)
+    run_all = not (args.sharedarray or args.pool or args.serial or args.solve)
 
     model = init_model()
     sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
@@ -100,6 +102,17 @@ if __name__ == "__main__":
             )
         summary_table_content.update({"pool": elapsed_time_pool})
 
+    if args.solve or run_all:
+        solver_args_solve = (model, Nsteps, dt, Nspm)
+        elapsed_time_solve = []
+        for nproc in nproc_range:
+            elapsed_time_solve.append(
+                execute_n_times(
+                    solve_w_pool_solve, solver_args_solve, n=Nreps, processes=nproc
+                )
+            )
+        summary_table_content.update({"solve": elapsed_time_solve})
+
     if args.serial or run_all:
         elapsed_time = execute_n_times(solve_serial, solver_args, n=Nreps)
         summary_table_content.update({"serial": elapsed_time})
@@ -117,6 +130,10 @@ if __name__ == "__main__":
     if args.pool or run_all:
         with open("scaling_pool.txt", "w") as f:
             np.savetxt(f, np.array(elapsed_time_pool), fmt="%.3f", delimiter=",")
+
+    if args.solve or run_all:
+        with open("scaling_solve.txt", "w") as f:
+            np.savetxt(f, np.array(elapsed_time_solve), fmt="%.3f", delimiter=",")
 
     print(" ")
     print(f"Nreps = {Nreps}", f"Npsm = {Nspm}")

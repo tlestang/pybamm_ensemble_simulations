@@ -41,3 +41,11 @@ class SimPool:
             inputs=self.inputs,
             save=False,
         )
+
+
+class SimSolve:
+    def __init__(self, model, dt, end_time, inputs):
+        self.model = model
+        self.dt = dt
+        self.end_time = end_time
+        self.inputs = inputs
