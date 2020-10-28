@@ -156,8 +156,9 @@ if __name__ == "__main__":
         summary_table_content.update({"serial": elapsed_time})
 
     if args.map_serial or run_all:
+        solver_args_map_serial = solver_args+[True]
         elapsed_time_map_serial = execute_n_times(
-            solve_w_pool_serial, solver_args, n=Nreps
+            solve_w_pool, solver_args_map_serial, n=Nreps
         )
         summary_table_content.update({"map-serial": elapsed_time_map_serial})
 

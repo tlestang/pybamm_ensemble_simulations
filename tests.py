@@ -87,8 +87,8 @@ class TestEnsembleSimulation(unittest.TestCase):
         np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
 
     def test_Pool_serial(self):
-        y, t = solve_w_pool_serial(
-            self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm
+        y, t = solve_w_pool(
+            self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm, serial=True
         )
 
         np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
