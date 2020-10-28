@@ -80,7 +80,7 @@ if __name__ == "__main__":
     sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
     Nreps = 10
     nproc_range = range(2, 6, 2)
-    Nspm = 8
+    Nspm = 32
     Nsteps = 10
     dt = 1
     description = (

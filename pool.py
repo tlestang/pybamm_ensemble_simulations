@@ -38,7 +38,7 @@ def solve_w_pool(model, sol_init, Nsteps, dt, Nspm, processes=None, serial=False
         solutions = list(map(func, work))
     else:
         with Pool(processes) as p:
-            solutions = p.map(func, work)
+            solutions = p.map(func, work, chunksize=Nspm/processes)
 
     if feedback:
         return solutions
