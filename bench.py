@@ -2,7 +2,6 @@ import argparse
 import time
 
 import numpy as np
-from prettytable import PrettyTable
 import pybamm as pb
 
 from pool import solve_w_pool
@@ -65,21 +64,46 @@ def execute_n_times(func, args, n=10, **kwargs):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run some benchmarks")
-    parser.add_argument("--sharedarray", action="store_true")
-    parser.add_argument("--pool", action="store_true")
-    parser.add_argument("--serial", action="store_true")
-    parser.add_argument("--solve", action="store_true")
-    args = parser.parse_args()
-    run_all = not (args.sharedarray or args.pool or args.serial or args.solve)
-
-    model = init_model()
-    sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
     Nreps = 10
     nproc_range = range(2, 6, 2)
     Nspm = 8
     Nsteps = 10
     dt = 1
+    description = (
+        "Time the resolution of an ensemble of SPMe models, for various number of processes and report timings. "
+        "Each implementation is executed {} times. "
+        "This is done following different implementations, see the list of options below. "
+        "Nspm = {}, Nsteps = {}, dt = {}, nproc_range = {}".format(
+            Nreps, Nspm, Nsteps, dt, list(nproc_range)
+        )
+    )
+
+    parser = argparse.ArgumentParser(description=description)
+    parser.add_argument(
+        "--sharedarray",
+        action="store_true",
+        help="Use implementation based on SharedArray package.",
+    )
+    parser.add_argument(
+        "--pool",
+        action="store_true",
+        help="Use implementation based on multiprocessing.Pool.map",
+    )
+    parser.add_argument(
+        "--solve",
+        action="store_true",
+        help="Same as --pool but worker function calls BaseSolver.solve() instead of stepping the model with BaseSolver.step().",
+    )
+    parser.add_argument(
+        "--serial",
+        action="store_true",
+        help="Serial implementation, i.e. solve SPMs in a sequence.",
+    )
+    args = parser.parse_args()
+    run_all = not (args.sharedarray or args.pool or args.serial or args.solve)
+
+    model = init_model()
+    sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
 
     solver_args = (model, sol_init, Nsteps, dt, Nspm)
     summary_table_content = {}
