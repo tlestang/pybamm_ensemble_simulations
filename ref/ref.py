@@ -106,8 +106,8 @@ if __name__ == '__main__':
    cmd = ["git", "rev-parse", "HEAD"]
    hash = run(cmd, capture_output=True, encoding="utf-8").stdout
    header = f"Generated with {__file__}, revision {hash}"
-   np.savetxt("base_solution.txt", shm_y, fmt="%.4e", header=header)
-   shm_y.tofile("base_solution.bin", "")
+   np.savetxt("ref_solution.txt", shm_y, fmt="%.4e", header=header)
+   shm_y.tofile("ref_solution.bin", "")
 
    SharedArray.delete('shm://y')
    SharedArray.delete('shm://t')

@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 import pybamm as pb
 
+from map_serial import solve_w_pool_serial
 from pool import solve_w_pool
 from serial import solve_serial
 from sharedarray import solve_w_SharedArray
@@ -82,5 +83,12 @@ class TestEnsembleSimulation(unittest.TestCase):
 
     def test_Serial(self):
         y, t = solve_serial(self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm)
+
+        np.testing.assert_almost_equal(y, self.expected_y, decimal=5)
+
+    def test_Pool_serial(self):
+        y, t = solve_w_pool_serial(
+            self.model, self.sol_init, self.Nsteps, self.dt, self.Nspm
+        )
 
         np.testing.assert_almost_equal(y, self.expected_y, decimal=5)

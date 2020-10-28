@@ -4,6 +4,7 @@ import time
 import numpy as np
 import pybamm as pb
 
+from map_serial import solve_w_pool_serial
 from pool import solve_w_pool
 from serial import solve_serial
 from sharedarray import solve_w_SharedArray
@@ -64,6 +65,19 @@ def execute_n_times(func, args, n=10, **kwargs):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run some benchmarks")
+    parser.add_argument("--sharedarray", action="store_true")
+    parser.add_argument("--pool", action="store_true")
+    parser.add_argument("--serial", action="store_true")
+    parser.add_argument("--map-serial", action="store_true")
+    parser.add_argument("--solve", action="store_true")
+    args = parser.parse_args()
+    run_all = not (
+        args.sharedarray or args.pool or args.serial or args.map_serial or args.solve
+    )
+
+    model = init_model()
+    sol_init = get_initial_solution(model, np.linspace(0, 1, 2), {"Current": 0.67})
     Nreps = 10
     nproc_range = range(2, 6, 2)
     Nspm = 8
@@ -141,11 +155,21 @@ if __name__ == "__main__":
         elapsed_time = execute_n_times(solve_serial, solver_args, n=Nreps)
         summary_table_content.update({"serial": elapsed_time})
 
+    if args.map_serial or run_all:
+        elapsed_time_map_serial = execute_n_times(
+            solve_w_pool_serial, solver_args, n=Nreps
+        )
+        summary_table_content.update({"map-serial": elapsed_time_map_serial})
+
     table = make_table(summary_table_content, nproc_range)
 
     if args.serial or run_all:
         with open("scaling_serial.txt", "w") as f:
             f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time)))
+
+    if args.map_serial or run_all:
+        with open("scaling_map_serial.txt", "w") as f:
+            f.write(" ".join((f"{numvar:.3f}" for numvar in elapsed_time_map_serial)))
 
     if args.sharedarray or run_all:
         with open("scaling_sharedarray.txt", "w") as f:

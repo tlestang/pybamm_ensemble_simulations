@@ -8,7 +8,7 @@ def make_table(benchmark_results, nproc_range):
     avg_col = []
     err_col = []
     for impl in benchmark_results.keys():
-        if impl == "serial":
+        if impl in ["serial", "map-serial"]:
             impl_col.append(impl)
             nproc_col.append("-")
             avg_col.append(np.mean(benchmark_results[impl]))
